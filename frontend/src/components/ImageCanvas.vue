@@ -27,7 +27,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, reactive } from 'vue'
+import { ref, onMounted, reactive, watch } from 'vue'
 import { useOcrStore } from '../store/ocr'
 
 const store = useOcrStore()
@@ -37,38 +37,45 @@ const dragging = ref(false)
 const dragStart = reactive({ x: 0, y: 0 })
 const dragRect = reactive({ x: 0, y: 0, w: 0, h: 0 })
 
-onMounted(() => {
-  if (mockCanvas.value) {
-    const ctx = mockCanvas.value.getContext('2d')!
-    const w = mockCanvas.value.width = mockCanvas.value.offsetWidth * 2
-    const h = mockCanvas.value.height = mockCanvas.value.offsetHeight * 2
+function drawMockCanvas() {
+  if (!mockCanvas.value || !store.currentDoc?.mockCanvas) return
+  const ctx = mockCanvas.value.getContext('2d')!
+  const w = mockCanvas.value.width = mockCanvas.value.offsetWidth * 2
+  const h = mockCanvas.value.height = mockCanvas.value.offsetHeight * 2
 
-    // Draw mock ancient text background
-    ctx.fillStyle = '#f5e6c8'
-    ctx.fillRect(0, 0, w, h)
+  ctx.fillStyle = '#f5e6c8'
+  ctx.fillRect(0, 0, w, h)
 
-    // Paper texture
-    for (let i = 0; i < 5000; i++) {
-      ctx.fillStyle = `rgba(139,90,43,${Math.random() * 0.1})`
-      ctx.fillRect(Math.random() * w, Math.random() * h, 2, 2)
-    }
+  for (let i = 0; i < 5000; i++) {
+    ctx.fillStyle = `rgba(139,90,43,${Math.random() * 0.1})`
+    ctx.fillRect(Math.random() * w, Math.random() * h, 2, 2)
+  }
 
-    // Vertical text columns (right to left)
-    ctx.fillStyle = '#2d1810'
-    ctx.font = 'bold 48px serif'
-    const columns = [
-      ['子', '曰', '學', '而', '時', '習', '之', '不', '亦', '説', '乎'],
-      ['有', '朋', '自', '遠', '方', '來', '不', '亦', '樂', '乎'],
-      ['人', '不', '知', '而', '不', '慍', '不', '亦', '君', '子', '乎'],
-    ]
-    columns.forEach((col, ci) => {
-      const x = w - 150 - ci * 180
-      col.forEach((ch, ri) => {
-        ctx.fillText(ch, x, 80 + ri * 65)
-      })
+  ctx.fillStyle = '#2d1810'
+  ctx.font = 'bold 48px serif'
+  const columns = store.currentDoc.mockCanvas.columns
+  columns.forEach((col, ci) => {
+    const x = w - 150 - ci * 180
+    col.chars.forEach((ch, ri) => {
+      ctx.fillText(ch, x, 80 + ri * 65)
     })
+  })
+}
+
+onMounted(() => {
+  if (!store.currentDoc?.imageUrl) {
+    requestAnimationFrame(drawMockCanvas)
   }
 })
+
+watch(
+  () => store.currentDoc?.id,
+  () => {
+    if (!store.currentDoc?.imageUrl && mockCanvas.value) {
+      requestAnimationFrame(drawMockCanvas)
+    }
+  }
+)
 
 function startDrag(e: MouseEvent) {
   const rect = (e.currentTarget as HTMLElement).getBoundingClientRect()

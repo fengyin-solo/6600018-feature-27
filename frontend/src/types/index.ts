@@ -6,10 +6,19 @@ export interface OCRResult {
   corrected?: string
 }
 
+export interface MockCanvasColumn {
+  chars: string[]
+}
+
+export interface MockCanvasData {
+  columns: MockCanvasColumn[]
+}
+
 export interface Document {
   id: string
   name: string
   imageUrl: string
+  mockCanvas?: MockCanvasData
   results: OCRResult[]
   annotations: Annotation[]
   createdAt: string

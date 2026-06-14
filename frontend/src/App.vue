@@ -11,7 +11,7 @@
         </label>
       </div>
 
-      <button @click="store.loadMockDocument()" class="bg-gray-800 py-2 rounded text-sm hover:bg-gray-700">
+      <button @click="store.loadMockDocuments()" class="bg-gray-800 py-2 rounded text-sm hover:bg-gray-700">
         加载示例文档
       </button>
 
@@ -29,10 +29,15 @@
       <!-- Document list -->
       <div class="flex-1 overflow-y-auto space-y-1">
         <div v-for="d in store.documents" :key="d.id" @click="store.currentDoc = d"
-          class="bg-gray-800 rounded p-2 cursor-pointer text-sm"
-          :class="store.currentDoc?.id === d.id ? 'ring-1 ring-amber-500' : ''">
-          {{ d.name }}
-          <div class="text-xs text-gray-500">{{ d.results.length }} 行识别</div>
+          class="rounded p-2 cursor-pointer text-sm transition-colors"
+          :class="store.currentDoc?.id === d.id
+            ? 'bg-amber-600/20 ring-1 ring-amber-500 text-amber-300'
+            : 'bg-gray-800 hover:bg-gray-700 text-gray-300'">
+          <div class="font-medium">{{ d.name }}</div>
+          <div class="text-xs mt-0.5"
+            :class="store.currentDoc?.id === d.id ? 'text-amber-400/70' : 'text-gray-500'">
+            {{ d.results.length }} 行识别
+          </div>
         </div>
       </div>
 
@@ -53,6 +58,9 @@
     <!-- Right: OCR results & annotations -->
     <div class="w-80 bg-gray-900 p-4 flex flex-col gap-3 border-l border-gray-800 overflow-y-auto">
       <h3 class="text-amber-300 font-bold text-sm">OCR 识别结果</h3>
+      <div v-if="store.currentDoc" class="text-xs text-gray-400 border-b border-gray-700 pb-2">
+        当前文档：{{ store.currentDoc.name }}
+      </div>
       <div v-if="store.currentDoc" class="space-y-2">
         <div v-for="r in store.currentDoc.results" :key="r.id"
           class="bg-gray-800 rounded p-2 text-sm">
